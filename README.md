@@ -99,6 +99,42 @@ Opcional:
 - Postman (para pruebas manuales)
 - Docker (para la siguiente sección del proyecto)
 
+## 🗄️ Modelo de Datos
+
+
+El modelo de datos fue diseñado para almacenar y consultar grandes volúmenes de eventos de alarmas industriales, priorizando:
+
+- Consultas eficientes por rango de tiempo.
+- Filtros por severidad y tag.
+- Métricas agregadas (conteos).
+- Trazabilidad del origen de los datos.
+
+Se optó por un diseño **relacional normalizado de forma pragmática**, evitando sobre-normalización innecesaria que pudiera afectar el rendimiento de consultas frecuentes.
+
+### Tablas principales
+
+- **alarm_event**  
+  Tabla central que almacena el histórico de eventos de alarmas SCADA.
+
+- **alarm_severity**  
+  Catálogo que normaliza los niveles de severidad provenientes de sistemas legacy.
+
+- **source_system**  
+  Identifica el sistema de origen de cada evento de alarma.
+
+### Consideraciones de diseño
+
+- El campo `event_time` es el eje principal de consultas y filtros.
+- El campo `raw_payload_path` permite mantener trazabilidad del archivo original procesado.
+- Las relaciones están diseñadas para minimizar JOINs costosos en consultas comunes.
+- Se definen índices específicos para soportar consultas por tiempo, severidad y tag.
+
+### Diagrama Entidad‑Relación
+
+<img width="557" height="538" alt="image" src="https://github.com/user-attachments/assets/d765d2f3-def9-49a2-b312-65db5a352ab1" />
+
+---
+
 ## ▶️ Ejecución Local (sin Docker)
 
 ### 1. Clonar el repositorio
@@ -213,43 +249,6 @@ El sistema incluye un **generador de datasets SCADA** que crea archivos JSON y C
 - Formatos de fecha heterogéneos.
 - Severidades inconsistentes (strings, números, valores inválidos).
 - Campos opcionales ausentes.
-
----
-
-## 🗄️ Modelo de Datos
-
-
-El modelo de datos fue diseñado para almacenar y consultar grandes volúmenes de eventos de alarmas industriales, priorizando:
-
-- Consultas eficientes por rango de tiempo.
-- Filtros por severidad y tag.
-- Métricas agregadas (conteos).
-- Trazabilidad del origen de los datos.
-
-Se optó por un diseño **relacional normalizado de forma pragmática**, evitando sobre-normalización innecesaria que pudiera afectar el rendimiento de consultas frecuentes.
-
-### Tablas principales
-
-- **alarm_event**  
-  Tabla central que almacena el histórico de eventos de alarmas SCADA.
-
-- **alarm_severity**  
-  Catálogo que normaliza los niveles de severidad provenientes de sistemas legacy.
-
-- **source_system**  
-  Identifica el sistema de origen de cada evento de alarma.
-
-### Consideraciones de diseño
-
-- El campo `event_time` es el eje principal de consultas y filtros.
-- El campo `raw_payload_path` permite mantener trazabilidad del archivo original procesado.
-- Las relaciones están diseñadas para minimizar JOINs costosos en consultas comunes.
-- Se definen índices específicos para soportar consultas por tiempo, severidad y tag.
-
-### Diagrama Entidad‑Relación
-
-
-<img width="557" height="538" alt="image" src="https://github.com/user-attachments/assets/d765d2f3-def9-49a2-b312-65db5a352ab1" />
 
 ---
 
