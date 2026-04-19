@@ -69,6 +69,8 @@ app/
 │   └── alarm_repository.py
 ├── services/
 │   └── alarm_service.py
+├── sql/
+│   └── bd_creation.sql
 ├── tests/
 │   ├── test_alarm_repository.py
 │   ├── test_alarm_service.py
@@ -130,7 +132,74 @@ DATASET_RAW_PATH=./datasets/raw
 DATASET_PROCESSED_PATH=./datasets/processed
 ```
 
-### 5. Ejecutar la API
+### 5. Ejecutar script de creación de la base de datos
+
+```bash
+
+CREATE DATABASE scada_gateway_alarms GO
+USE scada_gateway_alarms GO
+
+CREATE TABLE alarm_severity (
+    severity_id INT IDENTITY(1,1) PRIMARY KEY,
+    severity_code VARCHAR(20) NOT NULL UNIQUE, -- LOW, MEDIUM, HIGH, CRITICAL
+    severity_level INT NOT NULL,                -- 1,2,3,4
+    description VARCHAR(100) NULL
+);
+
+CREATE TABLE source_system (
+    source_system_id INT IDENTITY(1,1) PRIMARY KEY,
+    system_name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(100) NULL
+);
+
+CREATE TABLE alarm_event (
+    alarm_event_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+    tag VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NULL,
+
+    severity_id INT NOT NULL,
+    source_system_id INT NOT NULL,
+
+    event_time DATETIME2(3) NOT NULL,
+    cleared_time DATETIME2(3) NULL,
+
+    status VARCHAR(20) NOT NULL, -- ACTIVE | CLEARED
+
+    raw_payload_path NVARCHAR(MAX) NULL, -- JSON original opcional
+
+    created_at DATETIME2(3) NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT FK_alarm_event_severity
+        FOREIGN KEY (severity_id)
+        REFERENCES alarm_severity(severity_id),
+
+    CONSTRAINT FK_alarm_event_source
+        FOREIGN KEY (source_system_id)
+        REFERENCES source_system(source_system_id)
+);
+
+CREATE INDEX IX_alarm_event_event_time
+ON alarm_event (event_time);
+
+CREATE INDEX IX_alarm_event_severity_time
+ON alarm_event (severity_id, event_time);
+
+CREATE INDEX IX_alarm_event_tag_time
+ON alarm_event (tag, event_time);
+
+CREATE INDEX IX_alarm_event_status_time
+ON alarm_event (status, event_time);
+
+INSERT INTO alarm_severity (severity_code, severity_level)
+VALUES 
+('LOW', 1),
+('MEDIUM', 2),
+('HIGH', 3),
+('CRITICAL', 4);
+```
+
+### 6. Ejecutar la API
 ```bash
 uvicorn app.main:app --reload
 ```
@@ -145,6 +214,43 @@ El sistema incluye un **generador de datasets SCADA** que crea archivos JSON y C
 - Formatos de fecha heterogéneos.
 - Severidades inconsistentes (strings, números, valores inválidos).
 - Campos opcionales ausentes.
+
+---
+
+## 🗄️ Modelo de Datos
+
+
+El modelo de datos fue diseñado para almacenar y consultar grandes volúmenes de eventos de alarmas industriales, priorizando:
+
+- Consultas eficientes por rango de tiempo.
+- Filtros por severidad y tag.
+- Métricas agregadas (conteos).
+- Trazabilidad del origen de los datos.
+
+Se optó por un diseño **relacional normalizado de forma pragmática**, evitando sobre-normalización innecesaria que pudiera afectar el rendimiento de consultas frecuentes.
+
+### Tablas principales
+
+- **alarm_event**  
+  Tabla central que almacena el histórico de eventos de alarmas SCADA.
+
+- **alarm_severity**  
+  Catálogo que normaliza los niveles de severidad provenientes de sistemas legacy.
+
+- **source_system**  
+  Identifica el sistema de origen de cada evento de alarma.
+
+### Consideraciones de diseño
+
+- El campo `event_time` es el eje principal de consultas y filtros.
+- El campo `raw_payload_path` permite mantener trazabilidad del archivo original procesado.
+- Las relaciones están diseñadas para minimizar JOINs costosos en consultas comunes.
+- Se definen índices específicos para soportar consultas por tiempo, severidad y tag.
+
+### Diagrama Entidad‑Relación
+
+
+<img width="557" height="538" alt="image" src="https://github.com/user-attachments/assets/d765d2f3-def9-49a2-b312-65db5a352ab1" />
 
 ---
 
@@ -301,8 +407,6 @@ La solución incluye pruebas automatizadas usando **pytest**:
 ```bash
 pytest
 ```
-
----
 
 ---
 
