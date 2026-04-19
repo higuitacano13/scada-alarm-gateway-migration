@@ -99,7 +99,6 @@ Opcional:
 - Postman (para pruebas manuales)
 - Docker (para la siguiente sección del proyecto)
 
-``
 ## ▶️ Ejecución Local (sin Docker)
 
 ### 1. Clonar el repositorio
