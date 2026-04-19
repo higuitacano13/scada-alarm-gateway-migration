@@ -102,7 +102,7 @@ Opcional:
 
 ### 1. Clonar el repositorio
 ```bash
-git clone <repositorio>
+git clone https://github.com/higuitacano13/scada-alarm-gateway-migration.git
 cd scada-alarm-gateway
 ```
 
@@ -303,13 +303,6 @@ pytest
 ```
 
 ---
-
-## ▶️ Ejecución de la Aplicación
-
-```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
 
 ---
 
