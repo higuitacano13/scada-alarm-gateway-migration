@@ -1,4 +1,6 @@
 from typing import Literal
+from fastapi.responses import FileResponse
+from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from datetime import datetime, timezone
 from ingestion.generator import generate_alarm_dataset
@@ -19,7 +21,7 @@ def generate_dataset(
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
     filename = f"alarms_generated_{timestamp}.{file_format}"
-    path = settings.dataset_generated_path / filename
+    path: Path = settings.dataset_generated_path / filename
 
     generate_alarm_dataset(
         path=path,
@@ -27,12 +29,16 @@ def generate_dataset(
         file_format=file_format
     )
 
-    return {
-        "message": "Dataset generado correctamente",
-        "records": size,
-        "format": file_format,
-        "path": str(path)
-    }
+    return FileResponse(
+        path=path,
+        filename=filename,
+        media_type=(
+            "application/json"
+            if file_format == "json"
+            else "text/csv"
+        )
+    )
+
 
 @router.post("/load-dataset")
 def load_dataset(

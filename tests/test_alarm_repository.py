@@ -99,16 +99,22 @@ def test_get_alarms_basic():
     repo = AlarmRepository()
     repo.db = MagicMock()
 
-    mock_query = MagicMock()
-    repo.db.query.return_value = mock_query
+    # 👇 Dos queries diferentes
+    mock_count_query = MagicMock()
+    mock_data_query = MagicMock()
 
-    mock_query.join.return_value = mock_query
-    mock_query.filter.return_value = mock_query
-    mock_query.order_by.return_value = mock_query
-    mock_query.offset.return_value = mock_query
-    mock_query.limit.return_value = mock_query
+    repo.db.query.side_effect = [mock_count_query, mock_data_query]
 
-    mock_query.count.return_value = 1
+    mock_count_query.join.return_value = mock_count_query
+    mock_count_query.filter.return_value = mock_count_query
+    mock_count_query.scalar.return_value = 1
+
+
+    mock_data_query.join.return_value = mock_data_query
+    mock_data_query.filter.return_value = mock_data_query
+    mock_data_query.order_by.return_value = mock_data_query
+    mock_data_query.offset.return_value = mock_data_query
+    mock_data_query.limit.return_value = mock_data_query
 
     mock_alarm = MagicMock()
     mock_alarm.alarm_event_id = 1
@@ -118,15 +124,23 @@ def test_get_alarms_basic():
     mock_alarm.event_time = datetime.now()
     mock_alarm.created_at = datetime.now()
 
-    mock_query.all.return_value = [
+    mock_data_query.all.return_value = [
         (mock_alarm, 3, "SCADA_A")
     ]
 
+    # ------------------------
+    # EXECUTE
+    # ------------------------
     data, total = repo.get_alarms()
 
+    # ------------------------
+    # ASSERTS
+    # ------------------------
     assert total == 1
     assert len(data) == 1
     assert data[0]["tag"] == "PUMP_01"
+    assert data[0]["severity"] == 3
+    assert data[0]["source_system"] == "SCADA_A"
 
 def test_get_top_tags():
     repo = AlarmRepository()

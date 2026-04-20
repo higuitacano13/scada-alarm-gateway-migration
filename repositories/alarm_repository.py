@@ -53,9 +53,30 @@ class AlarmRepository:
         tag=None,
         limit=50,
         offset=0
-    ) -> Tuple[list, int]:
+    ):
+        base_filters = []
 
-        query = (
+        if start_time:
+            base_filters.append(AlarmEvent.event_time >= start_time)
+        if end_time:
+            base_filters.append(AlarmEvent.event_time <= end_time)
+        if severity:
+            base_filters.append(AlarmSeverity.severity_level == severity)
+        if tag:
+            base_filters.append(AlarmEvent.tag == tag)
+
+        count_query = (
+            self.db.query(func.count(AlarmEvent.alarm_event_id))
+            .join(AlarmSeverity)
+            .join(SourceSystem)
+        )
+
+        if base_filters:
+            count_query = count_query.filter(and_(*base_filters))
+
+        total = count_query.scalar()
+        
+        data_query = (
             self.db.query(
                 AlarmEvent,
                 AlarmSeverity.severity_level,
@@ -65,33 +86,19 @@ class AlarmRepository:
             .join(SourceSystem)
         )
 
-        filters = []
-
-        if start_time:
-            filters.append(AlarmEvent.event_time >= start_time)
-        if end_time:
-            filters.append(AlarmEvent.event_time <= end_time)
-        if severity:
-            filters.append(AlarmSeverity.severity_level == severity)
-        if tag:
-            filters.append(AlarmEvent.tag == tag)
-
-        if filters:
-            query = query.filter(and_(*filters))
-
-        total = query.count()
+        if base_filters:
+            data_query = data_query.filter(and_(*base_filters))
 
         records = (
-            query
+            data_query
             .order_by(AlarmEvent.event_time.desc())
             .offset(offset)
             .limit(limit)
             .all()
         )
 
-        results = []
-        for alarm, severity_level, source_name in records:
-            results.append({
+        results = [
+            {
                 "id": alarm.alarm_event_id,
                 "tag": alarm.tag,
                 "description": alarm.description,
@@ -100,7 +107,9 @@ class AlarmRepository:
                 "event_time": alarm.event_time,
                 "source_system": source_name,
                 "created_at": alarm.created_at
-            })
+            }
+            for alarm, severity_level, source_name in records
+        ]
 
         return results, total
     

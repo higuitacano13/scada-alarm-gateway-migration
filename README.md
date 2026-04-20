@@ -163,6 +163,8 @@ DB_USER=sa
 DB_PASSWORD=your_password
 DB_DRIVER=ODBC Driver 18 for SQL Server
 
+ALLOWED_ORIGINS=http://localhost:port
+
 DATASET_RAW_PATH=./datasets/raw
 DATASET_PROCESSED_PATH=./datasets/processed
 ```
@@ -286,13 +288,17 @@ curl -X POST "http://localhost:8000/api/v1/ingestion/generate-dataset?size=5000&
 <img width="750" height="154" alt="image" src="https://github.com/user-attachments/assets/19821475-fd3a-411f-848f-88f55edae7b0" />
 
 ### Respuesta Esperada
+
+El endpoint devuelve un archivo con las siguientes características:
+
+Content-Type
+- application/json si es JSON
+- text/csv si es CSV
+
+Content-Disposition
+
 ```bash
-{
-  "message": "Dataset generado correctamente",
-  "records": 5000,
-  "format": "json",
-  "path": "datasets/generated/alarms_generated_20240417_120000.json"
-}
+attachment; filename="alarms_generated_20260420_153045.json"
 ```
   
 2️⃣ Cargar dataset en la base de datos

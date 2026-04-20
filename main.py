@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from api.alarms import router as alarms_router
 from api.metrics import router as metrics_router
 from api.ingestion import router as ingestion_router
+from fastapi.middleware.cors import CORSMiddleware
+from core.config import settings
 
 app = FastAPI(
     title="SCADA Alarm Gateway API",
@@ -12,6 +14,13 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(alarms_router, prefix="/api/v1")
 app.include_router(metrics_router, prefix="/api/v1")

@@ -15,19 +15,25 @@ def client():
 
     app.dependency_overrides.clear()
 
+@patch("api.ingestion.settings")
 @patch("api.ingestion.generate_alarm_dataset")
-def test_generate_dataset(mock_generate, client):
+def test_generate_dataset(mock_generate, mock_settings, client, tmp_path):
     client, _ = client
 
-    response = client.post("/api/v1/ingestion/generate-dataset?size=10&file_format=json")
+    mock_settings.dataset_generated_path = tmp_path
 
+    def fake_generate(path, size, file_format):
+        path.write_text("fake content")
+
+    mock_generate.side_effect = fake_generate
+
+    response = client.post(
+        "/api/v1/ingestion/generate-dataset?size=10&file_format=json"
+    )
     assert response.status_code == 200
 
-    data = response.json()
-    assert data["records"] == 10
-    assert data["format"] == "json"
-
-    mock_generate.assert_called_once()
+    assert "content-disposition" in response.headers
+    assert ".json" in response.headers["content-disposition"]
 
 def test_generate_dataset_invalid_format(client):
     client, _ = client

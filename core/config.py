@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 from pathlib import Path
@@ -12,6 +14,7 @@ class Settings(BaseSettings):
 
     dataset_generated_path: Path
     dataset_processed_path: Path
+    allowed_origins: List[str] = []
 
     model_config = ConfigDict(
         env_file=".env",
