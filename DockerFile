@@ -1,0 +1,30 @@
+# Imagen base ligera y estable
+FROM python:3.11-slim
+
+# Evitar archivos .pyc y buffering
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Directorio de trabajo
+WORKDIR /app
+
+# Dependencias del sistema necesarias para pyodbc
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    unixodbc-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements e instalar dependencias
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código de la aplicación
+COPY . .
+
+# Exponer puerto
+EXPOSE 8000
+
+# Comando de arranque
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

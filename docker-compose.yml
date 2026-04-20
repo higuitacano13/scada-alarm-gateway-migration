@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: scada_sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'SELECT 1' | /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P $$MSSQL_SA_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: scada_api
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.docker
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./datasets:/app/datasets
+    restart: unless-stopped
+
+volumes:
+  sql_data:
