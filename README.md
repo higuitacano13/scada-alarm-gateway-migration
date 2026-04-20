@@ -2,7 +2,7 @@
 
 ## 📌 Descripción General
 
-Este repositorio contiene la solución desarrollada para la prueba técnica **“The SCADA Alarm Gateway & Migrator”**, cuyo objetivo es diseñar y construir un sistema completo que permita:
+Este repositorio contiene la solución desarrollada para un caso de estudio industrial **“The SCADA Alarm Gateway & Migrator”**, cuyo objetivo es diseñar y construir un sistema completo que permita:
 
 - Generar datasets representativos de alarmas SCADA con problemas típicos de calidad de datos.
 - Ingerir, limpiar y normalizar dicha información.
@@ -80,10 +80,16 @@ app/
 │   ├── test_ingestion.py
 │   ├── test_loader.py
 │   └── test_metrics-py
+├── .env
+├── .env.docker
+├── .gitignore
+├── docker-compose.yml
+├── Dockerfile
 ├── main.py
 ├── pytest.ini
-├── requirements.txt
-└── README.md
+├── README.md
+└── requirements.txt
+
 ```
 
 ## ✅ Requisitos Previos
@@ -243,6 +249,46 @@ uvicorn app.main:app --reload
 
 ---
 
+## 🐳 Ejecución con Docker
+
+La aplicación puede ejecutarse de forma completamente reproducible utilizando Docker y Docker Compose.
+
+### Requisitos
+- Docker
+- Docker Compose (v2+)
+
+### 1. Configurar variables de entorno
+
+Crear un archivo `.env.docker` en la raíz del proyecto con la configuración de base de datos y rutas de datasets:
+
+```env
+DB_SERVER=db
+DB_NAME=SCADA
+DB_USER=sa
+DB_PASSWORD=StrongPassword!123
+DB_DRIVER=ODBC Driver 18 for SQL Server
+
+ALLOWED_ORIGINS=http://localhost:port
+
+DATASET_GENERATED_PATH=/app/datasets/generated
+DATASET_PROCESSED_PATH=/app/datasets/processed
+``
+### 2. Construir e iniciar los contenedores
+
+```bash
+docker compose up --build
+```
+Este comando:
+
+- Levanta SQL Server
+- Levanta la API FastAPI
+- Configura volúmenes persistentes
+- Expone la API en http://localhost:8000
+
+### 3. Verificar estado
+    http://localhost:8000/api/v1/docs
+---
+
 ## 🧪 Dataset de Prueba
 
 El sistema incluye un **generador de datasets SCADA** que crea archivos JSON y CSV con características realistas y problemas intencionales de calidad de datos:
@@ -291,11 +337,11 @@ curl -X POST "http://localhost:8000/api/v1/ingestion/generate-dataset?size=5000&
 
 El endpoint devuelve un archivo con las siguientes características:
 
-Content-Type
+**Content-Type**
 - application/json si es JSON
 - text/csv si es CSV
 
-Content-Disposition
+**Content-Disposition**
 
 ```bash
 attachment; filename="alarms_generated_20260420_153045.json"
