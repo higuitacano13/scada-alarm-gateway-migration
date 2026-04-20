@@ -291,11 +291,11 @@ curl -X POST "http://localhost:8000/api/v1/ingestion/generate-dataset?size=5000&
 
 El endpoint devuelve un archivo con las siguientes características:
 
-Content-Type
+**Content-Type**
 - application/json si es JSON
 - text/csv si es CSV
 
-Content-Disposition
+**Content-Disposition**
 
 ```bash
 attachment; filename="alarms_generated_20260420_153045.json"
