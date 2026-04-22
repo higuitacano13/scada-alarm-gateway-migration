@@ -272,7 +272,7 @@ ALLOWED_ORIGINS=http://localhost:port
 
 DATASET_GENERATED_PATH=/app/datasets/generated
 DATASET_PROCESSED_PATH=/app/datasets/processed
-``
+```
 ### 2. Construir e iniciar los contenedores
 
 ```bash
