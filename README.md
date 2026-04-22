@@ -169,7 +169,7 @@ DB_USER=sa
 DB_PASSWORD=your_password
 DB_DRIVER=ODBC Driver 18 for SQL Server
 
-ALLOWED_ORIGINS=http://localhost:port
+ALLOWED_ORIGINS=["http://localhost:port"]
 
 DATASET_RAW_PATH=./datasets/raw
 DATASET_PROCESSED_PATH=./datasets/processed
@@ -268,7 +268,7 @@ DB_USER=sa
 DB_PASSWORD=StrongPassword!123
 DB_DRIVER=ODBC Driver 18 for SQL Server
 
-ALLOWED_ORIGINS=http://localhost:port
+ALLOWED_ORIGINS=["http://localhost:port"]
 
 DATASET_GENERATED_PATH=/app/datasets/generated
 DATASET_PROCESSED_PATH=/app/datasets/processed
